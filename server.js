@@ -11,7 +11,7 @@ var options = {
     method: 'GET',
     headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        /* 'Content-Length': Buffer.byteLength(data) */
+        
     }
 };
 
@@ -19,58 +19,95 @@ app.get('/', (req, res) => {
     res.send('OK working')
 })
 
-function remove_duplicate_elements(arr)
+async function removeDuplicates(arr)
 {
-
-if (arr.length==0 || arr.length==1)
-return arr.length;
-
-/* let x = arr.length */
-let temp=[];
-
-let j = 0;
-let i;
-for ( i=0; i<arr.length; i++)
-if (arr[i] != arr[i+1])
-temp[j++] = arr[i];
-temp[j++] = arr[arr.length-1];
-
-for (i=0; i<j; i++)
-arr[i] = temp[i];
-
-return arr;
+    
+    let n = arr.length
+    if (n==0 || n==1)
+        return n;
+ 
+    let temp=[];
+ 
+    
+    let j = 0;
+    for (let i=0; i<n-1; i++)
+ 
+       
+        if (arr[i] != arr[i+1])
+            temp[j++] = arr[i];
+ 
+    
+    temp[j++] = arr[n-1];
+ 
+    
+    for (let i=0; i<j; i++)
+        arr[i] = temp[i];
+ 
+    return arr;
 }
 
-function mSort (array) {
-    if (array.length === 1) {
-    return array                            // return once we hit an array with a single item
- }
- const middle = Math.floor(array.length / 2) // get the middle item of the array rounded down
- const left = array.slice(0, middle)         // items on the left side
- const right = array.slice(middle)           // items on the right side
-/*  document.write(middle); */
- return mergeSort(
-    mSort(left),
-    mSort(right)
- )
- }
-
-function mergeSort (left, right) {
-    let result = []
-    let leftIndex = 0
-    let rightIndex = 0
-    while (leftIndex < left.length && rightIndex < right.length) {
-       if (left[leftIndex] < right[rightIndex]) {
-       result.push(left[leftIndex])
-       leftIndex++
-       /* document.write("</br>");    */     
-       } else {
-       result.push(right[rightIndex])
-       rightIndex++      
+function merge(arr, l, m, r)
+{
+    var n1 = m - l + 1;
+    var n2 = r - m;
+  
+   
+    var L = new Array(n1); 
+    var R = new Array(n2);
+  
+    
+    for (var i = 0; i < n1; i++)
+        L[i] = arr[l + i];
+    for (var j = 0; j < n2; j++)
+        R[j] = arr[m + 1 + j];
+  
+   
+    var i = 0;
+  
+    
+    var j = 0;
+  
+    
+    var k = l;
+  
+    while (i < n1 && j < n2) {
+        if (L[i] <= R[j]) {
+            arr[k] = L[i];
+            i++;
+        }
+        else {
+            arr[k] = R[j];
+            j++;
+        }
+        k++;
     }
- }
- return result.concat(left.slice(leftIndex)).concat(right.slice(rightIndex))
- }
+  
+   
+    while (i < n1) {
+        arr[k] = L[i];
+        i++;
+        k++;
+    }
+  
+   
+    while (j < n2) {
+        arr[k] = R[j];
+        j++;
+        k++;
+    }
+    return arr
+}
+  
+
+async function mergeSort(arr,l, r){
+    if(l>=r){
+        return;
+    }
+    var m =l+ parseInt((r-l)/2);
+    mergeSort(arr,l,m);
+    mergeSort(arr,m+1,r);
+    return merge(arr,l,m,r);
+}
 
 
 app.get('/numbers', async (req, res) => {
@@ -92,11 +129,7 @@ app.get('/numbers', async (req, res) => {
                 for(let i of response.data.numbers) {
                     theArr.push(i)
                 }
-                /* response.on('data', (chunk) => {
-                    data += chunk;
-                    console.log('data====',data.numbers)
-                }); */
-            /* console.log('data',JSON.parse(data).numbers) */
+               
         })
         }
         catch(err){
@@ -104,35 +137,15 @@ app.get('/numbers', async (req, res) => {
         }
         
 
-        /* await http.get(`http://localhost:8090/${options.path}`, (resp) => {
-            let data = '';
-
-            
-            resp.on('data', (chunk) => {
-                data += chunk;
-                console.log('data====',data.numbers)
-            });
-
         
-            resp.on('end', () => {
-                for(let i of JSON.parse(data).numbers){
-                    theArr.push(i)
-                    console.log(i)
-                }
-                
-                console.log('data',JSON.parse(data).numbers)
-                
-            });
-
-        }).on("error", (err) => {
-            console.log("Error: " + err.message);
-        }); */
 
     }
     console.log('theArr', theArr);
-    console.log(await remove_duplicate_elements(theArr));
-    console.log('sorted',mSort(theArr));
-    res.send('received');
+    theArr = await mergeSort(theArr, 0, theArr.length - 1)
+    /* console.log('sorted',await mergeSort(theArr, 0, theArr.length - 1)); */
+    theArr = await removeDuplicates(theArr)
+    /* console.log(await removeDuplicates(theArr)); */
+    res.send(theArr);
 })
 
 app.listen(PORT, () => {
